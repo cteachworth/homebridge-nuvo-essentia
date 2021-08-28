@@ -33,7 +33,7 @@ export class NuvoEssentiaSource {
     this.service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
 
     // set the service name, this is what is displayed as the default name on the Home app
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.src.name);
+    this.service.setCharacteristic(this.platform.Characteristic.Name, this.accessory.context.config.name);
 
     // register handlers for the On/Off Characteristic
     this.service.getCharacteristic(this.platform.Characteristic.On)
@@ -46,15 +46,29 @@ export class NuvoEssentiaSource {
    * These are sent when the user changes the state of an accessory, for example, turning on a Light bulb.
    */
   async setOn(value: CharacteristicValue) {
+
     this.state.on = value as boolean;
-    const src = this.accessory.context.src;
-    for (const zone of src.enabledZones) {
+
+    const cfg = this.accessory.context.config;
+
+    const turnOffOthers = cfg.turnOffOtherSources;
+
+    if(this.state.on && turnOffOthers){
+      this.platform.turnOffOtherSources(cfg.id);
+    }
+
+    for (const zone of cfg.enabledZones) {
+
       const zoneId = parseInt(zone, 10);
+
       if(this.state.on){
-        this.platform.turnOffOtherSourcesForZone(zoneId, src.id);
-        this.platform.setSource(zone, src.inputId);
+
+        this.platform.setSource(zoneId, cfg.inputId);
+
       }else{
-        this.platform.setSource(zone.id, this.platform.config.defaultInputId);
+        const zone = this.platform.getZoneAccessoryById(zoneId);
+        const nextSourceId = zone?.context.config.defaultSourceId || this.platform.getActiveSourceIdWithPrecedence(cfg.id);
+        this.platform.setSource(zoneId, nextSourceId);
       }
 
     }

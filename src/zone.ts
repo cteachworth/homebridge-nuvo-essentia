@@ -33,7 +33,7 @@ export class NuvoEssentiaZone {
     this.service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
 
     // set the service name, this is what is displayed as the default name on the Home app
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.zone.name);
+    this.service.setCharacteristic(this.platform.Characteristic.Name, this.accessory.context.config.name);
 
     // each service must implement at-minimum the "required characteristics" for the given service type
     // see https://developers.homebridge.io/#/service/Lightbulb
@@ -50,8 +50,20 @@ export class NuvoEssentiaZone {
    * These are sent when the user changes the state of an accessory, for example, turning on a Light bulb.
    */
   async setOn(value: CharacteristicValue) {
+
     this.state.on = value as boolean;
-    this.state.on ? this.platform.turnOnZone(this.accessory.context.zone.id) : this.platform.turnOffZone(this.accessory.context.zone.id);
+
+    const cfg = this.accessory.context.config;
+
+    if(this.state.on){
+      this.platform.turnOnZone(cfg.id);
+      this.platform.setVolume(cfg.id, 'volume' in cfg ? cfg.volume : this.platform.config.defaultVolume);
+      this.platform.setTreble(cfg.id, cfg.treble);
+      this.platform.setBass(cfg.id, cfg.bass);
+    }else{
+      this.platform.turnOffZone(cfg.id);
+    }
+
   }
 
   /**

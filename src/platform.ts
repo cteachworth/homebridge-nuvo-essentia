@@ -4,11 +4,7 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { NuvoEssentiaZone } from './zone';
 import { NuvoEssentiaSource } from './source';
 
-
-//npm install --save @types/serialport
-//const SerialPort = require('serialport');
 import SerialPort from 'serialport';
-
 
 const Readline = SerialPort.parsers.Readline;
 
@@ -124,6 +120,10 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
         // this is imported from `platformAccessory.ts`
         new NuvoEssentiaZone(this, existingAccessory);
 
+        //HACK - we need to update the config of cached accessories or our changes don't have any effect
+        //without purging the cache. Figure out how to do this correctly.
+        existingAccessory.context.config = zone;
+
         this.zones.push(existingAccessory);
 
         // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
@@ -139,7 +139,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
         // store a copy of the device object in the `accessory.context`
         // the `context` property can be used to store any data about the accessory you may need
-        accessory.context.zone = zone;
+        accessory.context.config = zone;
 
         // create the accessory handler for the newly create accessory
         // this is imported from `platformAccessory.ts`
@@ -169,6 +169,10 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
         new NuvoEssentiaSource(this, existingAccessory);
 
+        //HACK - we need to update the config of cached accessories or our changes don't have any effect
+        //without purging the cache. Figure out how to do this correctly.
+        existingAccessory.context.config = src;
+
         this.sources.push(existingAccessory);
 
       // the accessory does not yet exist, so we need to create it
@@ -180,7 +184,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
         // store a copy of the device object in the `accessory.context`
         // the `context` property can be used to store any data about the accessory you may need
-        accessory.context.src = src;
+        accessory.context.config = src;
 
         // create the accessory handler for the newly create accessory
         // this is imported from `platformAccessory.ts`
@@ -202,72 +206,126 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
   async turnOnZone(zoneId :number){
     this.log.debug('Turning on zone ' + zoneId);
-    this.log.debug(`*Z0${zoneId}ON\r`);
-    this.port.write(`*Z0${zoneId}ON\r`);
+    const cmd = `*Z0${zoneId}ON\r`;
+    this.log.debug(cmd);
+    this.port.write(cmd);
     await this.sleep(this.config.cmdDelay);
-    this.setVolume(zoneId, this.config.defaultVolume);
   }
 
   async turnOffZone(zoneId :number){
     this.log.debug('Turning off zone ' + zoneId);
-    this.log.debug(`*Z0${zoneId}OFF\r`);
-    this.port.write(`*Z0${zoneId}OFF\r`);
+    const cmd = `*Z0${zoneId}OFF\r`;
+    this.log.debug(cmd);
+    this.port.write(cmd);
+    await this.sleep(this.config.cmdDelay);
+  }
+
+  async muteZone(zoneId :number){
+    this.log.debug('Turning off zone ' + zoneId);
+    const cmd = `*Z0${zoneId}MTON\r`;
+    this.log.debug(cmd);
+    this.port.write(cmd);
+    await this.sleep(this.config.cmdDelay);
+  }
+
+  async unmuteZone(zoneId :number){
+    this.log.debug('Turning off zone ' + zoneId);
+    const cmd = `*Z0${zoneId}MTOFF\r`;
+    this.log.debug(cmd);
+    this.port.write(cmd);
     await this.sleep(this.config.cmdDelay);
   }
 
   async setVolume(zoneId :number, volume :number){
     this.log.debug(`Setting volume of zone ${zoneId} to ${volume}`);
-    this.log.debug(`*Z0${zoneId}VOL${volume}\r`);
-    this.port.write(`*Z0${zoneId}VOL${volume}\r`);
+    const cmd = `*Z0${zoneId}VOL${volume}\r`;
+    this.log.debug(cmd);
+    this.port.write(cmd);
     await this.sleep(this.config.cmdDelay);
   }
 
   async setBass(zoneId :number, volume :number){
     this.log.debug(`Setting bass of zone ${zoneId} to ${volume}`);
-    this.log.debug(`*Z0${zoneId}BASS${volume}\r`);
-    this.port.write(`*Z0${zoneId}BASS${volume}\r`);
+    const cmd = `*Z0${zoneId}BASS${volume}\r`;
+    this.log.debug(cmd);
+    this.port.write(cmd);
     await this.sleep(this.config.cmdDelay);
   }
 
   async setTreble(zoneId :number, volume :number){
     this.log.debug(`Setting treble of zone ${zoneId} to ${volume}`);
-    this.log.debug(`*Z0${zoneId}TREB${volume}\r`);
-    this.port.write(`*Z0${zoneId}TREB${volume}\r`);
+    const cmd = `*Z0${zoneId}TREB${volume}\r`;
+    this.log.debug(cmd);
+    this.port.write(cmd);
     await this.sleep(this.config.cmdDelay);
   }
 
   async setSource(zoneId :number, sourceId :number){
     this.log.debug(`Setting source of zone ${zoneId} to ${sourceId}`);
-    this.log.debug(`*Z0${zoneId}SRC${sourceId}\r`);
-    this.port.write(`*Z0${zoneId}SRC${sourceId}\r`);
+    const cmd = `*Z0${zoneId}SRC${sourceId}\r`;
+    this.log.debug(cmd);
+    this.port.write(cmd);
     await this.sleep(this.config.cmdDelay);
   }
 
-  turnOffOtherSourcesForZone(zoneId :number, sourceId :number){
+  getSourceAccessoryById(sourceId :number) {
+    return this.sources.find(s => s.context.config.id === sourceId);
+  }
 
-    this.log.debug('We are turning off all source configured for zone ' + zoneId + ' expect source ' + sourceId);
+  getZoneAccessoryById(zoneId :number){
+    return this.zones.find(z => z.context.config.id === zoneId);
+  }
 
-    this.log.debug('There are ' + this.sources.length + ' sources configured.');
+  getActiveSourceIdWithPrecedence(sourceId :number){
 
-    const sources = this.sources.filter(s => s.context.src.zones.find(z => {
-      this.log.debug('Found zone with id:' + z.id);
-      return z.id === zoneId;
-    }));
+    let activeSourceId = this.config.defaultInputId;
 
-    this.log.debug('Found ' + sources.length + ' sources ' + 'for zone ' + zoneId);
+    for(const source of this.sources){
 
-    const uniqueSources = new Set(sources);
+      if(source.context.config.id !== sourceId ){
 
-    this.log.debug('Found ' + sources.length + ' unique sources ' + 'for zone ' + zoneId);
+        const characteristic = source.getService(this.api.hap.Service.Switch)?.getCharacteristic(this.Characteristic.On);
 
-    for(const s of uniqueSources){
-      if(s.context.src.id !== sourceId){
-        this.log.debug('Turning off sourceId ' + s.context.src.id);
-        const service = s.getService(this.api.hap.Service.Switch);
-        service && service.getCharacteristic(this.Characteristic.On).setValue(false);
+        if(characteristic?.value && source.context.config.turnOffOtherSources ){
+          activeSourceId = source.context.config.id;
+        }
+
       }
+
     }
 
+    return activeSourceId;
+
+  }
+
+  getSourceAccesoriesForZone(zoneId :number){
+    const sources = this.sources.filter(s => s.context.config.enabledZones.find(z => {
+      const enabledZoneId = parseInt(z, 10);
+      return enabledZoneId === zoneId;
+    }));
+    return sources;
+  }
+
+  turnOffOtherSources(sourceId :number){
+
+    const sourceCfg = this.getSourceAccessoryById(sourceId)?.context.config;
+
+    for(const otherSource of this.sources){
+
+      const otherSourceCfg = otherSource.context.config;
+
+      //if it's not this source and the other source contains any of the same zones
+      if(otherSourceCfg.id !== sourceCfg.id && otherSourceCfg.enabledZones.some(z => sourceCfg.enabledZones.includes(z))){
+
+        const characteristic = otherSource.getService(this.api.hap.Service.Switch)?.getCharacteristic(this.Characteristic.On);
+
+        if(characteristic?.value){
+          this.log.debug('Turning off source ' + otherSourceCfg.id);
+          characteristic.setValue(false);
+        }
+
+      }
+    }
   }
 
 }
