@@ -205,7 +205,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
   sendCommand(cmd :string){
     setTimeout(() => {
       this.log.debug('Sending queued command ' + cmd);
-      this.port.write(cmd, this.onQueuedCommandError);
+      this.port.write(cmd);
     }, this.config.cmdDelay);
   }
 
