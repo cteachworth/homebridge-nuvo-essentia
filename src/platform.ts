@@ -54,7 +54,8 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
     parser.on('data', data => {
       this.log.debug('data recevied:' + data);
-      this.getNextQueuedCommand();
+      this.commandQueue.shift();
+      this.sendNextQueuedCommand();
     });
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
@@ -201,17 +202,16 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  sleep(ms :number){
-    return new Promise((resolve) => {
-      setTimeout(resolve, ms);
-    });
-  }
-
   sendCommand(cmd :string){
     setTimeout(() => {
       this.log.debug('Sending queued command ' + cmd);
-      this.port.write(cmd);
+      this.port.write(cmd, this.onQueuedCommandError);
     }, this.config.cmdDelay);
+  }
+
+  onQueuedCommandError(err){
+    this.log.error('Error sending command:' + err);
+    this.sendNextQueuedCommand();
   }
 
   queueCommand(cmd :string){
@@ -226,8 +226,8 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
   }
 
-  getNextQueuedCommand(){
-    const cmd = this.commandQueue.shift();
+  sendNextQueuedCommand(){
+    const cmd = this.commandQueue[0];
     if(cmd) {
       this.sendCommand(cmd);
     }
