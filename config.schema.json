@@ -1,0 +1,148 @@
+{
+  "pluginAlias": "nuvo-essentia",
+  "pluginType": "platform",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "serialPortPath": {
+        "title": "Serial Port Path",
+        "type": "string",
+        "required": true,
+        "default": "/dev/ttyUSB0"
+      },
+      "baudRate": {
+        "title": "Baud Rate",
+        "type": "integer",
+        "required": true,
+        "default": 9600
+      },
+      "cmdDelay": {
+        "title": "Command Delay (ms)",
+        "type": "integer",
+        "required": true,
+        "default": 100
+      },
+      "defaultInputId": {
+        "title": "Default Input ID",
+        "description": "Default Nuvo input ID to use if one isn't specified for a zone.",
+        "type": "integer",
+        "required": true,
+        "default": 1
+      },
+      "defaultVolume": {
+        "title": "Default Volume",
+        "description": "Sets default volume from -0 to -78dB below max for all zones. e.g. 0 is MAX volume",
+        "type": "integer",
+        "required": true,
+        "default": 78,
+        "minimum": 0,
+        "maximum": 78
+      },
+      "zones":{
+        "type":"array",
+        "title":"Zones",
+        "required":true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type":"integer",
+              "title":"Zone ID",
+              "required":true,
+              "description": "You can only define each zone once.",
+              "oneOf": [
+                { "title": "Zone 1", "enum": ["1"] },
+                { "title": "Zone 2", "enum": ["2"] },
+                { "title": "Zone 3", "enum": ["3"] },
+                { "title": "Zone 4", "enum": ["4"] },
+                { "title": "Zone 5", "enum": ["5"] },
+                { "title": "Zone 6", "enum": ["6"] }
+              ]
+              },
+            "name": {
+              "type":"string",
+              "title":"Zone Name",
+              "required": true
+            },
+            "defaultSourceId": {
+              "type":"integer",
+              "title":"Default Source ID",
+              "required":false
+            },
+            "volume": {
+              "type":"integer",
+              "title":"Volume",
+              "required":false,
+              "default":0,
+              "minimum": 0,
+              "maximum": 78
+              
+            },
+            "bass": {
+              "type":"integer",
+              "title":"Bass",
+              "required":false,
+              "default":0,
+              "minimum": -12,
+              "maximum": 12
+            },
+            "treble": {
+              "type":"integer",
+              "title":"Treble",
+              "required":false,
+              "default":0,
+              "minimum": -12,
+              "maximum": 12
+            }
+          }
+        }
+      },
+      "sources":{
+        "type":"array",
+        "title":"Sources",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type":"integer",
+              "title":"Source ID",
+              "required":true,
+              "description": "A unique ID for this source"
+            },
+            "name": {
+              "type":"string",
+              "title":"Source Name",
+              "required": true,
+              "description": "A unique name for this source"
+            },
+            "inputId": {
+              "type":"integer",
+              "title":"Input ID",
+              "required":true,
+              "description": "The input ID on the Nuvo",
+              "oneOf": [
+                { "title": "Input 1", "enum": ["1"] },
+                { "title": "Input 2", "enum": ["2"] },
+                { "title": "Input 3", "enum": ["3"] },
+                { "title": "Input 4", "enum": ["4"] },
+                { "title": "Input 5", "enum": ["5"] },
+                { "title": "Input 6", "enum": ["6"] }
+              ]
+            },
+            "enabledZones":{
+              "type":"array",
+              "title":"Enabled Zones",
+              "uniqueItems": true,
+              "items": {
+                "title":"Zone",
+                "type":"string",
+                "enum":["1","2","3","4","5","6"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
