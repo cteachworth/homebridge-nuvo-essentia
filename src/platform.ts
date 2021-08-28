@@ -26,6 +26,8 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
   private port: SerialPort;
 
+  private commandQueue: string[] = [];
+
   constructor(
     public readonly log: Logger,
     public readonly config: PlatformConfig,
@@ -52,6 +54,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
     parser.on('data', data => {
       this.log.debug('data recevied:' + data);
+      this.getNextQueuedCommand();
     });
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
@@ -204,68 +207,78 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
     });
   }
 
-  async turnOnZone(zoneId :number){
+  sendCommand(cmd :string){
+    setTimeout(() => {
+      this.log.debug('Sending queued command ' + cmd);
+      this.port.write(cmd);
+    }, this.config.cmdDelay);
+  }
+
+  queueCommand(cmd :string){
+
+    this.log.debug('There are ' + this.commandQueue.length + ' queued commands');
+
+    this.commandQueue.push(cmd);
+
+    if (this.commandQueue.length === 1) {
+      this.sendCommand(cmd);
+    }
+
+  }
+
+  getNextQueuedCommand(){
+    const cmd = this.commandQueue.shift();
+    if(cmd) {
+      this.sendCommand(cmd);
+    }
+  }
+
+  turnOnZone(zoneId :number){
     this.log.debug('Turning on zone ' + zoneId);
     const cmd = `*Z0${zoneId}ON\r`;
-    this.log.debug(cmd);
-    this.port.write(cmd);
-    await this.sleep(this.config.cmdDelay);
+    this.queueCommand(cmd);
   }
 
-  async turnOffZone(zoneId :number){
+  turnOffZone(zoneId :number){
     this.log.debug('Turning off zone ' + zoneId);
     const cmd = `*Z0${zoneId}OFF\r`;
-    this.log.debug(cmd);
-    this.port.write(cmd);
-    await this.sleep(this.config.cmdDelay);
+    this.queueCommand(cmd);
   }
 
-  async muteZone(zoneId :number){
+  muteZone(zoneId :number){
     this.log.debug('Turning off zone ' + zoneId);
     const cmd = `*Z0${zoneId}MTON\r`;
-    this.log.debug(cmd);
-    this.port.write(cmd);
-    await this.sleep(this.config.cmdDelay);
+    this.queueCommand(cmd);
   }
 
-  async unmuteZone(zoneId :number){
+  unmuteZone(zoneId :number){
     this.log.debug('Turning off zone ' + zoneId);
     const cmd = `*Z0${zoneId}MTOFF\r`;
-    this.log.debug(cmd);
-    this.port.write(cmd);
-    await this.sleep(this.config.cmdDelay);
+    this.queueCommand(cmd);
   }
 
-  async setVolume(zoneId :number, volume :number){
+  setVolume(zoneId :number, volume :number){
     this.log.debug(`Setting volume of zone ${zoneId} to ${volume}`);
     const cmd = `*Z0${zoneId}VOL${volume}\r`;
-    this.log.debug(cmd);
-    this.port.write(cmd);
-    await this.sleep(this.config.cmdDelay);
+    this.queueCommand(cmd);
   }
 
-  async setBass(zoneId :number, volume :number){
+  setBass(zoneId :number, volume :number){
     this.log.debug(`Setting bass of zone ${zoneId} to ${volume}`);
     const cmd = `*Z0${zoneId}BASS${volume}\r`;
-    this.log.debug(cmd);
-    this.port.write(cmd);
-    await this.sleep(this.config.cmdDelay);
+    this.queueCommand(cmd);
   }
 
-  async setTreble(zoneId :number, volume :number){
+  setTreble(zoneId :number, volume :number){
     this.log.debug(`Setting treble of zone ${zoneId} to ${volume}`);
     const cmd = `*Z0${zoneId}TREB${volume}\r`;
-    this.log.debug(cmd);
-    this.port.write(cmd);
-    await this.sleep(this.config.cmdDelay);
+    this.queueCommand(cmd);
   }
 
-  async setSource(zoneId :number, sourceId :number){
+  setSource(zoneId :number, sourceId :number){
     this.log.debug(`Setting source of zone ${zoneId} to ${sourceId}`);
     const cmd = `*Z0${zoneId}SRC${sourceId}\r`;
-    this.log.debug(cmd);
-    this.port.write(cmd);
-    await this.sleep(this.config.cmdDelay);
+    this.queueCommand(cmd);
   }
 
   getSourceAccessoryById(sourceId :number) {
