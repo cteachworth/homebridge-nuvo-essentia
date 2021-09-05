@@ -134,7 +134,7 @@ class Essentia {
 
     async getZoneStatus(zoneId :number): Promise<string> {
       this.log.debug('Getting zone status for ' + zoneId);
-      const cmd = `*Z0${${this.convertNumber($zoneId)}CONSR\r`;
+      const cmd = `*Z0${zoneId}CONSR\r`;
       return await this.queueCommand(cmd);
     }
 
@@ -189,29 +189,32 @@ class Essentia {
     }
 
     async setVolume(zoneId :number, volume :number): Promise<boolean>{
-      this.log.debug(`Setting volume of zone ${zoneId} to ${volume}`);
-      const cmd = `*Z0${zoneId}VOL${this.convertNumber(volume)}\r`;
+      const level = this.convertNumber(volume);
+      this.log.debug(`Setting volume of zone ${zoneId} to ${level}`);
+      const cmd = `*Z0${zoneId}VOL${level}\r`;
       const result = await this.queueCommand(cmd);
       const status = this.parseConnectionSR(result);
-      this.log.debug(status.volume);
+      this.log.debug(`Volume for zone ${zoneId} is now ${status.volume}`);
       return parseInt(status.volume, 10) === volume;
     }
 
     async setBass(zoneId :number, bass :number): Promise<boolean>{
-      this.log.debug(`Setting bass of zone ${zoneId} to ${bass}`);
-      const cmd = `*Z0${zoneId}BASS${this.convertNumber(bass)}\r`;
+      const level = this.convertNumber(bass);
+      this.log.debug(`Setting bass of zone ${zoneId} to ${level}`);
+      const cmd = `*Z0${zoneId}BASS${level}\r`;
       const result = await this.queueCommand(cmd);
       const status = this.parseZoneSetSR(result);
-      this.log.debug(status.bass);
+      this.log.debug(`Bass for zone ${zoneId} is now ${status.bass}`);
       return parseInt(status.bass, 10) === bass;
     }
 
     async setTreble(zoneId :number, treble :number): Promise<boolean>{
-      this.log.debug(`Setting treble of zone ${zoneId} to ${treble}`);
-      const cmd = `*Z0${zoneId}TREB${this.convertNumber(treble)}\r`;
+      const level = this.convertNumber(treble);
+      this.log.debug(`Setting treble of zone ${zoneId} to ${level}`);
+      const cmd = `*Z0${zoneId}TREB${level}\r`;
       const result = await this.queueCommand(cmd);
       const status = this.parseZoneSetSR(result);
-      this.log.debug(status.treble);
+      this.log.debug(`Treble for zone ${zoneId} is now ${status.treble}`);
       return parseInt(status.treble, 10) === treble;
     }
 
@@ -220,7 +223,7 @@ class Essentia {
       const cmd = `*Z0${zoneId}SRC${sourceId}\r`;
       const result = await this.queueCommand(cmd);
       const status = this.parseConnectionSR(result);
-      this.log.debug(status.source);
+      this.log.debug(`Source of zone ${zoneId} is now ${status.source}`);
       return parseInt(status.source, 10) === sourceId;
     }
 
