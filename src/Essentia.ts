@@ -128,9 +128,13 @@ class Essentia {
 
     }
 
+    convertNumber(num :number): string{
+      return num < 10 ? '0' + num : `${num}`;
+    }
+
     async getZoneStatus(zoneId :number): Promise<string> {
       this.log.debug('Getting zone status for ' + zoneId);
-      const cmd = `*Z0${zoneId}CONSR\r`;
+      const cmd = `*Z0${${this.convertNumber($zoneId)}CONSR\r`;
       return await this.queueCommand(cmd);
     }
 
@@ -186,7 +190,7 @@ class Essentia {
 
     async setVolume(zoneId :number, volume :number): Promise<boolean>{
       this.log.debug(`Setting volume of zone ${zoneId} to ${volume}`);
-      const cmd = `*Z0${zoneId}VOL${volume}\r`;
+      const cmd = `*Z0${zoneId}VOL${this.convertNumber(volume)}\r`;
       const result = await this.queueCommand(cmd);
       const status = this.parseConnectionSR(result);
       this.log.debug(status.volume);
@@ -195,7 +199,7 @@ class Essentia {
 
     async setBass(zoneId :number, bass :number): Promise<boolean>{
       this.log.debug(`Setting bass of zone ${zoneId} to ${bass}`);
-      const cmd = `*Z0${zoneId}BASS${bass}\r`;
+      const cmd = `*Z0${zoneId}BASS${this.convertNumber(bass)}\r`;
       const result = await this.queueCommand(cmd);
       const status = this.parseZoneSetSR(result);
       this.log.debug(status.bass);
@@ -204,7 +208,7 @@ class Essentia {
 
     async setTreble(zoneId :number, treble :number): Promise<boolean>{
       this.log.debug(`Setting treble of zone ${zoneId} to ${treble}`);
-      const cmd = `*Z0${zoneId}TREB${treble}\r`;
+      const cmd = `*Z0${zoneId}TREB${this.convertNumber(treble)}\r`;
       const result = await this.queueCommand(cmd);
       const status = this.parseZoneSetSR(result);
       this.log.debug(status.treble);
