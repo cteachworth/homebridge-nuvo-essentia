@@ -209,7 +209,7 @@ class Essentia {
       let level = treble >= 0 ? '+' + treble : treble;
       level += String(treble).padStart(2, '0');
       this.log.debug(`Setting treble of zone ${zoneId} to ${level}`);
-      const cmd = `*Z0${zoneId}TREB0${level}\r`;
+      const cmd = `*Z0${zoneId}TREB${level}\r`;
       const result = await this.queueCommand(cmd);
       const status = this.parseZoneSetSR(result);
       this.log.debug(`Treble for zone ${zoneId} is now ${status.treble}`);
