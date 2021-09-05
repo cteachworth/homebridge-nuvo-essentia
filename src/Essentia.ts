@@ -58,6 +58,9 @@ class Essentia {
         this.processCommandQueue();
       });
 
+      //open the serial port
+      this.port.open();
+
     }
 
     processCommandQueue(){
