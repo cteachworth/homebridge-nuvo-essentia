@@ -130,7 +130,7 @@ class Essentia {
 
     async getZoneStatus(zoneId :number): Promise<string> {
       this.log.debug('Getting zone status for ' + zoneId);
-      const cmd = `*Z0${zoneId}ON\r`;
+      const cmd = `*Z0${zoneId}CONSR\r`;
       return await this.queueCommand(cmd);
     }
 
