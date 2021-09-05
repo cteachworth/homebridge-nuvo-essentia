@@ -53,15 +53,18 @@ export class NuvoEssentiaZone {
 
     this.state.on = value as boolean;
 
+
     const cfg = this.accessory.context.config;
+    const useMute = this.platform.config.muteInsteadOfRelay;
+    const essentia = this.platform.essentia;
 
     if(this.state.on){
-      this.platform.turnOnZone(cfg.id);
-      this.platform.setVolume(cfg.id, 'volume' in cfg ? cfg.volume : this.platform.config.defaultVolume);
-      this.platform.setTreble(cfg.id, cfg.treble);
-      this.platform.setBass(cfg.id, cfg.bass);
+      useMute ? essentia.muteZone(cfg.id) : essentia.turnOnZone(cfg.id);
+      essentia.setVolume(cfg.id, 'volume' in cfg ? cfg.volume : this.platform.config.defaultVolume);
+      essentia.setTreble(cfg.id, cfg.treble);
+      essentia.setBass(cfg.id, cfg.bass);
     }else{
-      this.platform.turnOffZone(cfg.id);
+      useMute ? essentia.unmuteZone(cfg.id) : essentia.turnOffZone(cfg.id);
     }
 
   }
@@ -75,18 +78,15 @@ export class NuvoEssentiaZone {
    *
    * If your device takes time to respond you should update the status of your device
    * asynchronously instead using the `updateCharacteristic` method instead.
-
-   * @example
-   * this.service.updateCharacteristic(this.platform.Characteristic.On, true)
    */
   async getOn(): Promise<CharacteristicValue> {
-    // implement your own code to check if the device is on
-    const isOn = this.state.on;
 
-    // if you need to return an error to show the device as "Not Responding" in the Home app:
-    // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+    const cfg = this.accessory.context.config;
+    const useMute = this.platform.config.muteInsteadOfRelay;
+    const essentia = this.platform.essentia;
 
-    return isOn;
+    return useMute ? await essentia.isZoneMuted(cfg.id) : await essentia.isZoneOn(cfg.id);
+
   }
 
 }

@@ -8,6 +8,8 @@ import SerialPort from 'serialport';
 
 const Readline = SerialPort.parsers.Readline;
 
+import Essentia from './Essentia';
+
 /**
  * HomebridgePlatform
  * This class is the main constructor for your plugin, this is where you should
@@ -24,9 +26,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
   private sources: PlatformAccessory[] = [];
 
-  private port: SerialPort;
-
-  private commandQueue: string[] = [];
+  readonly essentia: Essentia;
 
   constructor(
     public readonly log: Logger,
@@ -34,29 +34,13 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
     public readonly api: API,
   ) {
 
-    this.log.debug('Finished initializing platform:', this.config.serialPortPath);
-
-    this.port = new SerialPort(this.config.serialPortPath, {
-      autoOpen:false,
-      baudRate:this.config.baudRate,
+    this.essentia = new Essentia({
+      serialPortPath: this.config.serialPortPath,
+      baudRate: this.config.baudRate,
+      cmdDelay: this.config.cmdDelay,
+      log: this.log,
     });
 
-    this.port.on('open', () => {
-      this.log.info('Serial port open...');
-    });
-
-    this.port.on('error', (err) => {
-      this.log.error('Error on serial port:');
-      this.log.error(err);
-    });
-
-    const parser = this.port.pipe(new Readline({ delimiter: '\r' }));
-
-    parser.on('data', data => {
-      this.log.debug('data recevied:' + data);
-      this.commandQueue.shift();
-      this.sendNextQueuedCommand();
-    });
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
     // Dynamic Platform plugins should only register new accessories after this event was fired,
@@ -65,10 +49,6 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
     this.api.on('didFinishLaunching', () => {
 
       log.debug('Executed didFinishLaunching callback');
-
-      //open the serial port
-      this.port.open();
-
 
       // run the method to discover / register your devices as accessories
       this.discoverDevices();
@@ -200,85 +180,6 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       }
     }
-  }
-
-  sendCommand(cmd :string){
-    setTimeout(() => {
-      this.log.debug('Sending queued command ' + cmd);
-      this.port.write(cmd);
-    }, this.config.cmdDelay);
-  }
-
-  onQueuedCommandError(err){
-    this.log.error('Error sending command:' + err);
-    this.sendNextQueuedCommand();
-  }
-
-  queueCommand(cmd :string){
-
-    this.log.debug('There are ' + this.commandQueue.length + ' queued commands');
-
-    this.commandQueue.push(cmd);
-
-    if (this.commandQueue.length === 1) {
-      this.sendCommand(cmd);
-    }
-
-  }
-
-  sendNextQueuedCommand(){
-    const cmd = this.commandQueue[0];
-    if(cmd) {
-      this.sendCommand(cmd);
-    }
-  }
-
-  turnOnZone(zoneId :number){
-    this.log.debug('Turning on zone ' + zoneId);
-    const cmd = `*Z0${zoneId}ON\r`;
-    this.queueCommand(cmd);
-  }
-
-  turnOffZone(zoneId :number){
-    this.log.debug('Turning off zone ' + zoneId);
-    const cmd = `*Z0${zoneId}OFF\r`;
-    this.queueCommand(cmd);
-  }
-
-  muteZone(zoneId :number){
-    this.log.debug('Turning off zone ' + zoneId);
-    const cmd = `*Z0${zoneId}MTON\r`;
-    this.queueCommand(cmd);
-  }
-
-  unmuteZone(zoneId :number){
-    this.log.debug('Turning off zone ' + zoneId);
-    const cmd = `*Z0${zoneId}MTOFF\r`;
-    this.queueCommand(cmd);
-  }
-
-  setVolume(zoneId :number, volume :number){
-    this.log.debug(`Setting volume of zone ${zoneId} to ${volume}`);
-    const cmd = `*Z0${zoneId}VOL${volume}\r`;
-    this.queueCommand(cmd);
-  }
-
-  setBass(zoneId :number, volume :number){
-    this.log.debug(`Setting bass of zone ${zoneId} to ${volume}`);
-    const cmd = `*Z0${zoneId}BASS${volume}\r`;
-    this.queueCommand(cmd);
-  }
-
-  setTreble(zoneId :number, volume :number){
-    this.log.debug(`Setting treble of zone ${zoneId} to ${volume}`);
-    const cmd = `*Z0${zoneId}TREB${volume}\r`;
-    this.queueCommand(cmd);
-  }
-
-  setSource(zoneId :number, sourceId :number){
-    this.log.debug(`Setting source of zone ${zoneId} to ${sourceId}`);
-    const cmd = `*Z0${zoneId}SRC${sourceId}\r`;
-    this.queueCommand(cmd);
   }
 
   getSourceAccessoryById(sourceId :number) {

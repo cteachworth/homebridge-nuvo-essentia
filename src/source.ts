@@ -50,8 +50,8 @@ export class NuvoEssentiaSource {
     this.state.on = value as boolean;
 
     const cfg = this.accessory.context.config;
-
     const turnOffOthers = cfg.turnOffOtherSources;
+    const essentia = this.platform.essentia;
 
     if(this.state.on && turnOffOthers){
       this.platform.turnOffOtherSources(cfg.id);
@@ -63,12 +63,12 @@ export class NuvoEssentiaSource {
 
       if(this.state.on){
 
-        this.platform.setSource(zoneId, cfg.inputId);
+        essentia.setSource(zoneId, cfg.inputId);
 
       }else{
         const zone = this.platform.getZoneAccessoryById(zoneId);
         const nextSourceId = zone?.context.config.defaultSourceId || this.platform.getActiveSourceIdWithPrecedence(cfg.id);
-        this.platform.setSource(zoneId, nextSourceId);
+        essentia.setSource(zoneId, nextSourceId);
       }
 
     }
@@ -83,9 +83,6 @@ export class NuvoEssentiaSource {
    *
    * If your device takes time to respond you should update the status of your device
    * asynchronously instead using the `updateCharacteristic` method instead.
-
-   * @example
-   * this.service.updateCharacteristic(this.platform.Characteristic.On, true)
    */
   async getOn(): Promise<CharacteristicValue> {
     return this.state.on;

@@ -39,6 +39,10 @@
         "minimum": 0,
         "maximum": 78
       },
+      "muteInsteadOfRelay": {
+        "title": "Use mute/unmute instead of on/off for zones",
+        "type": "boolean"
+      },
       "zones":{
         "type":"array",
         "title":"Zones",
