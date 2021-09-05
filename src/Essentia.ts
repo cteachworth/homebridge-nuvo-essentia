@@ -195,7 +195,7 @@ class Essentia {
     }
 
     async setBass(zoneId :number, bass :number): Promise<boolean>{
-      let level = bass >= 0 ? '+' + bass : bass;
+      let level = bass >= 0 ? '+' + bass : '';
       level += String(bass).padStart(2, '0');
       this.log.debug(`Setting bass of zone ${zoneId} to ${level}`);
       const cmd = `*Z0${zoneId}BASS${level}\r`;
@@ -206,7 +206,7 @@ class Essentia {
     }
 
     async setTreble(zoneId :number, treble :number): Promise<boolean>{
-      let level = treble >= 0 ? '+' + treble : treble;
+      let level = treble >= 0 ? '+' : '';
       level += String(treble).padStart(2, '0');
       this.log.debug(`Setting treble of zone ${zoneId} to ${level}`);
       const cmd = `*Z0${zoneId}TREB${level}\r`;
