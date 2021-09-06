@@ -213,11 +213,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
   }
 
   getSourceAccesoriesForZone(zoneId :number){
-    const sources = this.sources.filter(s => s.context.config.enabledZones.find(z => {
-      const enabledZoneId = parseInt(z, 10);
-      return enabledZoneId === zoneId;
-    }));
-    return sources;
+    return this.sources.filter(s => s.context.config.enabledZones.find(z => parseInt(z, 10) === zoneId));
   }
 
   turnOffOtherSources(sourceId :number){
