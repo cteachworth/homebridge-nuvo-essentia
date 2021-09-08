@@ -1,7 +1,7 @@
 import { Logger } from 'homebridge'; //purely for types
 import SerialPort from 'serialport';
 
-class Essentia {
+export class Essentia {
 
     readonly port: SerialPort;
 
@@ -226,5 +226,3 @@ class Essentia {
     }
 
 }
-
-export = Essentia;

@@ -1,15 +1,10 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { NuvoEssentiaZone } from './zone';
-import { NuvoEssentiaSource } from './source';
-import Essentia from './Essentia';
+import { Zone } from './Zone';
+import { Source } from './Source';
+import { Essentia } from './Essentia';
 
-/**
- * HomebridgePlatform
- * This class is the main constructor for your plugin, this is where you should
- * parse the user config and discover/register accessories with Homebridge.
- */
 export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
@@ -17,11 +12,11 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
   // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
 
-  private zones: PlatformAccessory[] = [];
+  public readonly zones: PlatformAccessory[] = [];
 
-  private sources: PlatformAccessory[] = [];
+  public readonly sources: PlatformAccessory[] = [];
 
-  readonly essentia: Essentia;
+  public readonly essentia: Essentia;
 
   constructor(
     public readonly log: Logger,
@@ -63,7 +58,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
   }
 
   /**
-   * This is an example method showing how to register discovered accessories.
+   * Register discovered accessories.
    * Accessories must only be registered once, previously created accessories
    * must not be registered again to prevent "duplicate UUID" errors.
    */
@@ -78,7 +73,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
   createZones(){
     for (const zone of this.config.zones) {
 
-      // generate a unique id for the accessory this should be generated from
+      // Generate a unique id for the accessory. This should be generated from
       // something globally unique, but constant, for example, the device serial
       // number or MAC address
       const uuid = this.api.hap.uuid.generate('homebridge-essentia-zone:' + zone.id);
@@ -98,7 +93,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
-        new NuvoEssentiaZone(this, existingAccessory);
+        new Zone(this, existingAccessory);
 
         this.zones.push(existingAccessory);
 
@@ -114,7 +109,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
         // create the accessory handler for the newly create accessory
         // this is imported from `platformAccessory.ts`
-        new NuvoEssentiaZone(this, accessory);
+        new Zone(this, accessory);
 
         this.zones.push(accessory);
 
@@ -143,7 +138,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
         existingAccessory.context.config = src;
         this.api.updatePlatformAccessories([existingAccessory]);
 
-        new NuvoEssentiaSource(this, existingAccessory);
+        new Source(this, existingAccessory);
 
         this.sources.push(existingAccessory);
 
@@ -159,7 +154,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
         // create the accessory handler for the newly create accessory
         // this is imported from `platformAccessory.ts`
-        new NuvoEssentiaSource(this, accessory);
+        new Source(this, accessory);
 
         this.sources.push(accessory);
 

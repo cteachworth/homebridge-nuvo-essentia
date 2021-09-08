@@ -1,7 +1,7 @@
 import { API } from 'homebridge';
 
 import { PLATFORM_NAME } from './settings';
-import { NuvoEssentiaPlatform } from './platform';
+import { NuvoEssentiaPlatform } from './NuvoEssentiaPlatform';
 
 /**
  * This method registers the platform with Homebridge
