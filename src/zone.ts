@@ -56,10 +56,16 @@ export class NuvoEssentiaZone {
     const essentia = this.platform.essentia;
 
     if(turnOn){
-      useMute ? await essentia.unmuteZone(cfg.id) : await essentia.turnOnZone(cfg.id);
+
+      if(useMute){
+        await essentia.unmuteZone(cfg.id);
+      }
+
+      await essentia.turnOnZone(cfg.id);
       await essentia.setVolume(cfg.id, 'volume' in cfg ? cfg.volume : this.platform.config.defaultVolume);
       await essentia.setTreble(cfg.id, cfg.treble);
       await essentia.setBass(cfg.id, cfg.bass);
+
     }else{
       useMute ? await essentia.muteZone(cfg.id) : await essentia.turnOffZone(cfg.id);
     }
@@ -84,14 +90,6 @@ export class NuvoEssentiaZone {
 
     return useMute ? await essentia.isZoneMuted(cfg.id) : await essentia.isZoneOn(cfg.id);
 
-  }
-
-  async setDefaults(){
-    const cfg = this.accessory.context.config;
-    const essentia = this.platform.essentia;
-    await essentia.setVolume(cfg.id, 'volume' in cfg ? cfg.volume : this.platform.config.defaultVolume);
-    await essentia.setTreble(cfg.id, cfg.treble);
-    await essentia.setBass(cfg.id, cfg.bass);
   }
 
 }

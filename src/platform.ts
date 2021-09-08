@@ -3,11 +3,6 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { NuvoEssentiaZone } from './zone';
 import { NuvoEssentiaSource } from './source';
-
-import SerialPort from 'serialport';
-
-const Readline = SerialPort.parsers.Readline;
-
 import Essentia from './Essentia';
 
 /**
@@ -96,24 +91,17 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
         // the accessory already exists
         this.log.debug('Restoring existing zone accessory from cache:', existingAccessory.displayName);
 
-        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-        // existingAccessory.context.device = device;
-        // this.api.updatePlatformAccessories([existingAccessory]);
+        //we need to update the config of cached accessories or our config changes
+        //don't have any effect without purging the cache.
+        existingAccessory.context.config = zone;
+        this.api.updatePlatformAccessories([existingAccessory]);
 
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
         new NuvoEssentiaZone(this, existingAccessory);
 
-        //HACK - we need to update the config of cached accessories or our changes don't have any effect
-        //without purging the cache. Figure out how to do this correctly.
-        existingAccessory.context.config = zone;
-
         this.zones.push(existingAccessory);
 
-        // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
-        // remove platform accessories when no longer present
-        // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
-        // this.log.debug('Removing existing accessory from cache:', existingAccessory.displayName);
       } else {
         // the accessory does not yet exist, so we need to create it
         this.log.debug('Adding new accessory:', zone.name);
@@ -121,8 +109,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
         // create a new accessory
         const accessory = new this.api.platformAccessory(zone.name, uuid);
 
-        // store a copy of the device object in the `accessory.context`
-        // the `context` property can be used to store any data about the accessory you may need
+        // store a copy of the device config object in the `accessory.context`
         accessory.context.config = zone;
 
         // create the accessory handler for the newly create accessory
@@ -151,11 +138,12 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
 
         this.log.debug('Restoring existing source accessory from cache:', existingAccessory.displayName);
 
-        new NuvoEssentiaSource(this, existingAccessory);
-
-        //HACK - we need to update the config of cached accessories or our changes don't have any effect
-        //without purging the cache. Figure out how to do this correctly.
+        //we need to update the config of cached accessories or our config changes
+        //don't have any effect without purging the cache.
         existingAccessory.context.config = src;
+        this.api.updatePlatformAccessories([existingAccessory]);
+
+        new NuvoEssentiaSource(this, existingAccessory);
 
         this.sources.push(existingAccessory);
 
@@ -166,8 +154,7 @@ export class NuvoEssentiaPlatform implements DynamicPlatformPlugin {
         // create a new accessory
         const accessory = new this.api.platformAccessory(src.name, uuid);
 
-        // store a copy of the device object in the `accessory.context`
-        // the `context` property can be used to store any data about the accessory you may need
+        // store a copy of the device config object in the `accessory.context`
         accessory.context.config = src;
 
         // create the accessory handler for the newly create accessory

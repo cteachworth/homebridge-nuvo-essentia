@@ -185,7 +185,7 @@ class Essentia {
     }
 
     async setVolume(zoneId :number, volume :number): Promise<boolean>{
-      const level = String(volume).padStart(2, '0');
+      const level = String(volume).padStart(2, '0').replace('-', '');
       this.log.debug(`Setting volume of zone ${zoneId} to ${level}`);
       const cmd = `*Z0${zoneId}VOL${level}\r`;
       const result = await this.queueCommand(cmd);

@@ -32,12 +32,12 @@
       },
       "defaultVolume": {
         "title": "Default Volume",
-        "description": "Sets default volume from -0 to -78dB below max for all zones. e.g. 0 is MAX volume",
+        "description": "Sets default volume from -78dB to 0dB below max for all zones. e.g. 0 is MAX volume",
         "type": "integer",
         "required": true,
-        "default": 78,
-        "minimum": 0,
-        "maximum": 78
+        "default": -78,
+        "minimum": -78,
+        "maximum": 0
       },
       "muteInsteadOfRelay": {
         "title": "Use mute/unmute instead of on/off for zones",
@@ -78,9 +78,9 @@
               "type":"integer",
               "title":"Volume",
               "required":false,
-              "default":0,
-              "minimum": 0,
-              "maximum": 78
+              "default":-78,
+              "minimum": -78,
+              "maximum": 0
               
             },
             "bass": {
