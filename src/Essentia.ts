@@ -166,6 +166,13 @@ export class Essentia {
       return status.volume === 'MT';
     }
 
+    async isZoneUnmuted(zoneId :number): Promise<boolean> {
+      const result = await this.getZoneStatus(zoneId);
+      const status = this.parseConnectionSR(result);
+      this.log.debug(status.volume);
+      return status.volume !== 'MT';
+    }
+
     async muteZone(zoneId :number): Promise<boolean>{
       this.log.debug('Muting zone ' + zoneId);
       const cmd = `*Z0${zoneId}MTON\r`;

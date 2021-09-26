@@ -57,17 +57,23 @@ export class Zone {
 
     if(turnOn){
 
-      if(useMute){
-        await essentia.unmuteZone(cfg.id);
-      }
-
       await essentia.turnOnZone(cfg.id);
       await essentia.setVolume(cfg.id, 'volume' in cfg ? cfg.volume : this.platform.config.defaultVolume);
       await essentia.setTreble(cfg.id, cfg.treble);
       await essentia.setBass(cfg.id, cfg.bass);
 
+      if(useMute){
+        await essentia.unmuteZone(cfg.id);
+      }
+
     }else{
-      useMute ? await essentia.muteZone(cfg.id) : await essentia.turnOffZone(cfg.id);
+
+      if(useMute){
+        await essentia.turnOnZone(cfg.id); //can't mute if the zone isn't on
+        await essentia.muteZone(cfg.id);
+      }else{
+        await essentia.turnOffZone(cfg.id);
+      }
     }
 
   }
@@ -88,7 +94,7 @@ export class Zone {
     const useMute = this.platform.config.muteInsteadOfRelay;
     const essentia = this.platform.essentia;
 
-    return useMute ? await essentia.isZoneMuted(cfg.id) : await essentia.isZoneOn(cfg.id);
+    return useMute ? await essentia.isZoneUnmuted(cfg.id) : await essentia.isZoneOn(cfg.id);
 
   }
 
